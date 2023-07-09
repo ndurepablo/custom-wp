@@ -1,0 +1,5 @@
+
+/* Hide filed topup wallet */
+.woo-wallet-my-wallet-container .card:nth-child(1) {
+    display: none !important;
+    }
