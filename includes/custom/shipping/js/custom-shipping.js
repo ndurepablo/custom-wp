@@ -28,7 +28,7 @@ jQuery(document).ready(function($) {
             datePickerElement.addClass('show');
             console.log('desde datepicker', datePickerElement)
             jQuery( '#custom_shipping_date' ).datepicker({
-              dateFormat: 'dd MM yy',
+              dateFormat: 'dd-mm-yy',
               beforeShowDay: function(date) {
                 var day = date.getDay();
                 return [(day != 0)];

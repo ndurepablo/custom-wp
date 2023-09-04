@@ -13,15 +13,15 @@ add_action( 'wp_enqueue_scripts', 'mytheme_enqueue_scripts' );
  * Add custom field to the checkout page
  */
 add_action( 'woocommerce_after_order_notes', function ( $checkout ) {
-    echo '<div id="custom_checkout_field"><h2>' . __( 'Order Meta' ) . '</h2>';
+    echo '<div id="custom_checkout_field"><h2>' . __( 'Seleccione la zona y fecha de entrega:' ) . '</h2>';
 
     // Obtener el subtotal del pedido
     $subtotal = WC()->cart->subtotal;
     // Mostrar el valor del subtotal en un encabezado h1
     echo '<h1>Subtotal: ' . $subtotal . '</h1>';
 
-    $gba_shipping_cost = ($subtotal > 100) ? 0 : 300; 
-    $country_shipping_cost = ($subtotal > 500) ? 0 : 500; 
+    $gba_shipping_cost = ($subtotal > 100) ? 0 : 300;
+    $country_shipping_cost = ($subtotal > 500) ? 0 : 500;
     
     // Opción 1: Domicilio en Capital Federal y GBA
     woocommerce_form_field( 'radio_region', array(
@@ -80,6 +80,14 @@ add_action( 'woocommerce_after_order_notes', function ( $checkout ) {
     echo '</div>';
 
 } );
+/**
+ * Muestra el valor del nuevo campo DATE en la página de edición del pedido
+ */
+add_action( 'woocommerce_admin_order_data_after_billing_address', 'mostrar_campo_personalizado_en_admin_pedido', 10, 1 );
+ 
+function mostrar_campo_personalizado_en_admin_pedido($order){
+    echo '<p><strong>'.__('Fecha de entrega').':</strong> ' . get_post_meta( $order->id, 'custom_shipping_date', true ) . '</p>';
+}
 
 
 /**

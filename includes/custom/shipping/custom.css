@@ -5,3 +5,7 @@
 .show {
     display: inherit !important;
 }
+
+#woocommerce_price_filter-2{
+    display: none;
+}
