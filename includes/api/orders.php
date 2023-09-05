@@ -10,21 +10,10 @@ add_action('rest_api_init', 'product_category');
 
 // Función de callback para obtener productos por categoría
 function get_product_by_category($request) {
-    $category = isset($_GET['categoria']) ? $_GET['categoria'] : 'almacen';
-
-    // Crear el array asociativo y agregarlo al resultado
-//     $result = [
-//         'category' => $category,
-//         'products' => [
-//             "product_id_1" => [
-//                 "name" => "name_of_product",
-//                 "user_comprador_1" => "cantidad_que_compra",
-//             ]
-//         ]
-//     ];
+    $category = isset($_GET['categoria']) ? $_GET['categoria'] : 'Vegetable';
 
     // Fecha que deseas buscar (por ejemplo, '01-08-2023')
-    $date_to_search = '22-09-2023';
+    $date_to_search = isset($_GET['shipping_date']) ? $_GET['shipping_date'] : '22-09-2023';
 
     $args = array(
         'meta_key'      => 'custom_shipping_date', // Postmeta key field
@@ -38,15 +27,16 @@ function get_product_by_category($request) {
     // Inicializar un arreglo para almacenar la información completa de las órdenes
     $orders_info = array();
 
-    // Recorrer los IDs de las órdenes filtradas
+    // Inicializa un arreglo para almacenar los datos
+    $result = array(
+        'category' => $category,
+        'products' => array()
+    );
+
+    // Recorre las órdenes obtenidas
     foreach ($filtered_order_ids as $order_id) {
         $order = wc_get_order($order_id); // Obtener la instancia completa de la orden
 
-        // Obtener información del usuario comprador
-        $user_id = $order->get_user_id();
-
-        // Obtener información de los productos comprados
-        $products_info = array();
         foreach ($order->get_items() as $item) {
             $product = $item->get_product();
             $product_id = $product->get_id(); // Obtener el ID del producto
@@ -58,35 +48,32 @@ function get_product_by_category($request) {
             foreach ($product_categories as $category) {
                 $category_names[] = $category->name;
             }
-            # TODO: SOLO DEBEN QUEDAR LAS ORDENES QUE TENGAN ESTA CATEGORIA
-            // Verificar si el producto pertenece a la categoría "Vegetable"
-            if (in_array('Vegetable', $category_names)) {
-                $containsVegetable = true;
-                $products_info[] = array(
-                    'name' => $product->get_name(),
-                    'quantity' => $item->get_quantity(),
-                    'categories' => $category_names, // Agregar las categorías del producto
-                );
-            }
-    }
 
-        // Agregar la información de esta orden al arreglo de información completa
-        if ($containsVegetable) {
-            $orders_info[] = array(
-                'order_id' => $order_id,
-                'user_info' => $user_id,
-                'products_info' => $products_info,
-            );
+            // Verificar si el producto pertenece a la categoría 'Vegetable'
+            if (in_array('Vegetable', $category_names)) {
+                $user_id = $order->get_user_id();
+                $user_info = get_userdata($user_id);
+                $user = $user_info->user_login;
+                $product_name = $product->get_name();
+                $quantity_purchased = $item->get_quantity();
+
+                // Verificar si el producto ya existe en $result['products']
+                if (!isset($result['products'][$product_id])) {
+                    $result['products'][$product_id] = array(
+                        'name' => $product_name,
+                        'users' => array(),
+                        'total_quantity' => 0, // Inicializar la suma total
+                    );
+                }
+
+                // Agregar el comprador a la lista de compradores para este producto
+                $result['products'][$product_id]['users'][$user] = $quantity_purchased;
+                // Sumar la cantidad al total
+                $result['products'][$product_id]['total_quantity'] += $quantity_purchased;
+            }
         }
     }
-    // Crear el array de respuesta que incluye la categoría y la información completa de las órdenes
-    $response = array(
-        'category' => $category,
-        'filtered_orders' => $orders_info,
-    );
-
-    return $response;
-
+    return array($result);
 }
 
 
