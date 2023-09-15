@@ -11,7 +11,9 @@ add_action('rest_api_init', 'product_category');
 
 // Función de callback para obtener productos por categoría
 function get_product_by_category($request) {
-    $category = isset($_GET['category']) ? $_GET['category'] : 'Vegetable';
+    $search_category = isset($_GET['category']) ? $_GET['category'] : 'Fruit';
+
+
 
     // Fecha que deseas buscar (por ejemplo, '01-08-2023')
     $date_to_search = isset($_GET['shipping_date']) ? $_GET['shipping_date'] : '22-09-2023';
@@ -45,7 +47,7 @@ function get_product_by_category($request) {
             }
 
             // Verificar si el producto pertenece a la categoría 'Vegetable'
-            if (in_array("Vegetable", $category_names)) {
+            if (in_array($search_category, $category_names)) {
                 $user_id = $order->get_user_id();
                 $user_info = get_userdata($user_id);
                 $user = $user_info->user_login;
