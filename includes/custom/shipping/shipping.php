@@ -155,11 +155,12 @@ function actualizar_costo_envio() {
     if ( isset( $_POST['custom_shipping_cost'] ) ) {
         $customShippingCost = sanitize_text_field( $_POST['custom_shipping_cost'] );
         $zoneSelected = sanitize_text_field( $_POST['zone_selected'] );
+        $generalZone = sanitize_text_field( $_POST['radio_selected'] );
 
         // Obtener el subtotal del pedido
         $subtotal = WC()->cart->subtotal;
         $hoodsJsonFile = get_stylesheet_directory_uri() . '/includes/custom/shipping/js/hoods.json';
-        $cost = json_reader_shipping_cost($hoodsJsonFile, $zoneSelected, 'hoods');
+        $cost = json_reader_shipping_cost($hoodsJsonFile, $zoneSelected, 'hoods', $generalZone);
         foreach ($cost as $slug => $info) {
             if ($customShippingCost === $slug) {
                 $shippingCost = ($subtotal > $info['freeShippingThreshold']) ? 0 : $info['shippingCost'];
