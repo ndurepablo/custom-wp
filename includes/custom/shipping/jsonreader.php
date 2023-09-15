@@ -67,13 +67,21 @@ function json_reader_shipping_cost($path, $region, $type) {
     $jsonString = file_get_contents($hoodsjsonFile);
     // Decodificar el JSON en una estructura de datos de PHP
     $data = json_decode($jsonString, true);
+
     $region_list = array();
+
     if (isset($data[$region][$type])) {
         foreach ($data[$region][$type] as $country) {
-            $region_list += [$country['slug'] => $country['shippingCost']];
-        
+            $slug = $country['slug'];
+            $shippingCost = $country['shippingCost'];
+            $freeShippingThreshold = $country['freeShippingThreshold'];
+
+            $region_list[$slug] = [
+                'shippingCost' => $shippingCost,
+                'freeShippingThreshold' => $freeShippingThreshold
+            ];
         }
     }
- 
+
     return $region_list;
-};
+}

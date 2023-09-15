@@ -34,38 +34,41 @@ add_action( 'woocommerce_after_order_notes', function ( $checkout ) {
         
     ), $checkout->get_value( 'radio_region' ) );
 
-    // Llamada al json reader que  retorna un arr con las zonas mas generales
-    $hoodsJsonFile = get_stylesheet_directory_uri() . '/includes/custom/shipping/js/hoods.json';
-    $gba_region_list = json_reader($hoodsJsonFile);
-
-    $countriesJsonFile = get_stylesheet_directory_uri() . '/includes/custom/shipping/js/countries.json';
-    $countries_region_list = json_reader($countriesJsonFile);
-
-    // jsonreaderhoods retorna una lista con los barrios o countries del json
-    // este codigo habria que borrar
-    $countries = json_reader_hoods($countriesJsonFile, 'zona_norte', 'countries');
-
-
-    // jsonreaderhoods retorna una lista de los barrios con posibilidad de acceder a sus valores
-    $hoods = json_reader_hoods($hoodsJsonFile, 'caba', 'hoods');
-
-    // creo un arreglo y defino los valores de nombre de region y costo de envio
-    $hoods_options = array('select_opt' => __('Seleccione una opción', 'woocommerce'), );
-    foreach ($hoods as $region) {
-        $name = $region['name'];
-        $shippingCost = $region['slug'];
-        $hoods_options[$shippingCost] = $name; // ['shippingCost' => $name]
-    }
-    woocommerce_form_field('custom_shipping_cost', array(
-        'type'    => 'select',
-        'class'   => array('form-row-radio', 'caba_hoods', 'hiden'),
-        'label'         => __('Seleccione una opción'),
-        'options' => $hoods_options, // aca se envia shippingCost como value del option y el name como el texto de option
-        'required' => true,
-        'default' => 'select_opt'
-    ), $checkout->get_value('custom_shipping_cost'));
-
-    $cost = json_reader_shipping_cost($hoodsJsonFile, 'caba', 'hoods');
+//     // Llamada al json reader que  retorna un arr con las zonas mas generales
+//     $hoodsJsonFile = get_stylesheet_directory_uri() . '/includes/custom/shipping/js/hoods.json';
+//     $gba_region_list = json_reader($hoodsJsonFile);
+//
+//     $countriesJsonFile = get_stylesheet_directory_uri() . '/includes/custom/shipping/js/countries.json';
+//     $countries_region_list = json_reader($countriesJsonFile);
+//
+//     // jsonreaderhoods retorna una lista con los barrios o countries del json
+//     // este codigo habria que borrar
+//     $countries = json_reader_hoods($countriesJsonFile, 'zona_norte', 'countries');
+//
+//
+//     // jsonreaderhoods retorna una lista de los barrios con posibilidad de acceder a sus valores
+//     $hoods = json_reader_hoods($hoodsJsonFile, 'caba', 'hoods');
+//     $south_hoods = json_reader_hoods($hoodsJsonFile, 'zona_sur', 'hoods');
+//
+//
+//
+//     // creo un arreglo y defino los valores de nombre de region y costo de envio
+//     $hoods_options = array('select_opt' => __('Seleccione una opción', 'woocommerce'), );
+//     foreach ($hoods as $region) {
+//         $name = $region['name'];
+//         $shippingCost = $region['slug'];
+//         $hoods_options[$shippingCost] = $name; // ['shippingCost' => $name]
+//     }
+//     woocommerce_form_field('custom_shipping_cost', array(
+//         'type'    => 'select',
+//         'class'   => array('form-row-radio', 'caba_hoods', 'hiden'),
+//         'label'         => __('Seleccione una opción'),
+//         'options' => $hoods_options, // aca se envia shippingCost como value del option y el name como el texto de option
+//         'required' => true,
+//         'default' => 'select_opt'
+//     ), $checkout->get_value('custom_shipping_cost'));
+//
+//     $cost = json_reader_shipping_cost($hoodsJsonFile, 'caba', 'hoods');
 
     // Mostrar el campo en la sección de envío
     woocommerce_form_field( 'custom_shipping_date', array(
@@ -78,6 +81,7 @@ add_action( 'woocommerce_after_order_notes', function ( $checkout ) {
         'autocomplete'  => 'off',
     ), get_user_meta( get_current_user_id(), 'custom_shipping_date', true ));
     echo '</div>';
+
 
 } );
 /**
@@ -150,17 +154,18 @@ add_action( 'wp_ajax_nopriv_actualizar_costo_envio', 'actualizar_costo_envio' );
 function actualizar_costo_envio() {
     if ( isset( $_POST['custom_shipping_cost'] ) ) {
         $customShippingCost = sanitize_text_field( $_POST['custom_shipping_cost'] );
+        $zoneSelected = sanitize_text_field( $_POST['zone_selected'] );
 
         // Obtener el subtotal del pedido
         $subtotal = WC()->cart->subtotal;
         $hoodsJsonFile = get_stylesheet_directory_uri() . '/includes/custom/shipping/js/hoods.json';
-        $cost = json_reader_shipping_cost($hoodsJsonFile, 'caba', 'hoods');
-        $gba_shipping_cost = ($subtotal > 100) ? 0 : 300; 
-        foreach($cost as $x => $x_value) {
-            if ($customShippingCost === $x) {
-                $shippingCost =  ($subtotal > 102) ? 0 : $x_value; // Asignar un costo de envío de 10 si es 'hood_palermo'
-            };
-          };
+        $cost = json_reader_shipping_cost($hoodsJsonFile, $zoneSelected, 'hoods');
+        foreach ($cost as $slug => $info) {
+            if ($customShippingCost === $slug) {
+                $shippingCost = ($subtotal > $info['freeShippingThreshold']) ? 0 : $info['shippingCost'];
+            }
+        }
+
 
         // Establecer el valor de 'custom_shipping_cost' en la sesión para guardarlo al momento de hacer el pago
         WC()->session->set( 'custom_shipping_cost', $shippingCost );

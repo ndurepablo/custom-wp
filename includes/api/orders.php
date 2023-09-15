@@ -8,9 +8,10 @@ function product_category() {
 }
 add_action('rest_api_init', 'product_category');
 
+
 // Función de callback para obtener productos por categoría
 function get_product_by_category($request) {
-    $category = isset($_GET['categoria']) ? $_GET['categoria'] : 'Vegetable';
+    $category = isset($_GET['category']) ? $_GET['category'] : 'Vegetable';
 
     // Fecha que deseas buscar (por ejemplo, '01-08-2023')
     $date_to_search = isset($_GET['shipping_date']) ? $_GET['shipping_date'] : '22-09-2023';
@@ -25,13 +26,7 @@ function get_product_by_category($request) {
     $filtered_order_ids = wc_get_orders($args);
 
     // Inicializar un arreglo para almacenar la información completa de las órdenes
-    $orders_info = array();
-
-    // Inicializa un arreglo para almacenar los datos
-    $result = array(
-        'category' => $category,
-        'products' => array()
-    );
+    $result = array();
 
     // Recorre las órdenes obtenidas
     foreach ($filtered_order_ids as $order_id) {
@@ -50,16 +45,16 @@ function get_product_by_category($request) {
             }
 
             // Verificar si el producto pertenece a la categoría 'Vegetable'
-            if (in_array('Vegetable', $category_names)) {
+            if (in_array("Vegetable", $category_names)) {
                 $user_id = $order->get_user_id();
                 $user_info = get_userdata($user_id);
                 $user = $user_info->user_login;
                 $product_name = $product->get_name();
                 $quantity_purchased = $item->get_quantity();
 
-                // Verificar si el producto ya existe en $result['products']
-                if (!isset($result['products'][$product_id])) {
-                    $result['products'][$product_id] = array(
+                // Verificar si el producto ya existe en $result
+                if (!isset($result[$product_id])) {
+                    $result[$product_id] = array(
                         'name' => $product_name,
                         'users' => array(),
                         'total_quantity' => 0, // Inicializar la suma total
@@ -67,17 +62,14 @@ function get_product_by_category($request) {
                 }
 
                 // Agregar el comprador a la lista de compradores para este producto
-                $result['products'][$product_id]['users'][$user] = $quantity_purchased;
+                $result[$product_id]['users'][$user] = $quantity_purchased;
                 // Sumar la cantidad al total
-                $result['products'][$product_id]['total_quantity'] += $quantity_purchased;
+                $result[$product_id]['total_quantity'] += $quantity_purchased;
             }
         }
     }
-    return array($result);
+    return $result;
 }
-
-
-
 
 
 
@@ -135,7 +127,6 @@ function filter_orders_by_delivery_date( $args, $request ) {
 
     return $args;
 }
-
 
 
 add_filter('woocommerce_rest_prepare_shop_order_object', 'agregar_contador_productos_categoria_a_order_endpoint', 10, 3);
