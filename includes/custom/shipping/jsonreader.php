@@ -56,7 +56,7 @@ function json_reader_hoods($path, $region, $type) {
     return $region_list;
 };
 
-function json_reader_shipping_cost($path, $region, $type) {
+function json_reader_shipping_cost($path, $region, $type, $generalZone) {
     if (empty($path)) {
         throw new Exception('El parámetro $path es requerido.');
     }
@@ -66,11 +66,12 @@ function json_reader_shipping_cost($path, $region, $type) {
     // Leer el contenido del archivo JSON
     $jsonString = file_get_contents($hoodsjsonFile);
     // Decodificar el JSON en una estructura de datos de PHP
-    $data = json_decode($jsonString, true);
-
+    $data_json = json_decode($jsonString, true);
+    $data = $data_json[$generalZone];
     $region_list = array();
 
     if (isset($data[$region][$type])) {
+
         foreach ($data[$region][$type] as $country) {
             $slug = $country['slug'];
             $shippingCost = $country['shippingCost'];
