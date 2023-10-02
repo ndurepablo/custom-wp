@@ -11,12 +11,15 @@ add_action('rest_api_init', 'product_category');
 
 // Función de callback para obtener productos por categoría
 function get_product_by_category($request) {
-    $search_category = isset($_GET['category']) ? $_GET['category'] : 'Fruit';
-
-
+    $search_category = isset($_GET['category']) ? $_GET['category'] : 'Vegetales';
+     if ($search_category == 'Almacen'){
+        $categories_list = ['Infusiones', 'Aceites y vinagres'];
+     }
+     else
+        $categories_list = array($search_category);
 
     // Fecha que deseas buscar (por ejemplo, '01-08-2023')
-    $date_to_search = isset($_GET['shipping_date']) ? $_GET['shipping_date'] : '22-09-2023';
+    $date_to_search = isset($_GET['shipping_date']) ? $_GET['shipping_date'] : '26-09-2023';
 
     $args = array(
         'meta_key'      => 'custom_shipping_date', // Postmeta key field
@@ -46,8 +49,8 @@ function get_product_by_category($request) {
                 $category_names[] = $category->name;
             }
 
-            // Verificar si el producto pertenece a la categoría 'Vegetable'
-            if (in_array($search_category, $category_names)) {
+            // Verificar si al menos una de las categorías del producto está en el arreglo de categorías buscadas
+            if (count(array_intersect($categories_list, $category_names)) > 0) {
                 $user_id = $order->get_user_id();
                 $user_info = get_userdata($user_id);
                 $user = $user_info->user_login;
@@ -74,7 +77,6 @@ function get_product_by_category($request) {
 }
 
 
-
 add_action('woocommerce_rest_prepare_shop_order_object', 'agregar_fecha_hora_entrega_en_api', 10, 3);
 
 function agregar_fecha_hora_entrega_en_api($response, $order, $request) {
@@ -84,8 +86,6 @@ function agregar_fecha_hora_entrega_en_api($response, $order, $request) {
 
     $response->data['delivery_date'] = $delivery_date;
     $response->data['delivery_time'] = $delivery_time;
-    $response->data['custom_shipping_date'] = get_post_meta($order->get_id(), 'custom_shipping_date', true);
-
 
     return $response;
 }
@@ -124,7 +124,8 @@ function filter_orders_by_delivery_date( $args, $request ) {
     // Agregar un filtro para buscar órdenes con el valor de la fecha de entrega
     $args['meta_query'][] = array(
         'key' => 'custom_shipping_date', // Reemplaza con la clave correcta de metadatos
-        'value' => $delivery_date,
+        'value' => $delivery_date
+        ,
     );
 
     return $args;
