@@ -101,13 +101,13 @@ function mostrar_campo_personalizado_en_admin_pedido($order){
 // Validacion para que el campo custom_shipping_cost sea olbigatorio
 add_action( 'woocommerce_checkout_process', 'customised_checkout_field_process' );
 function customised_checkout_field_process() {
-    if ( ! $_POST['custom_shipping_cost'] || $_POST['custom_shipping_cost'] === 'select_opt' ) {
-        wc_add_notice( __( 'Please enter cost!' ), 'error' );
-    }
+//     if ( ! $_POST['custom_shipping_cost'] || $_POST['custom_shipping_cost'] === 'select_opt' ) {
+//         wc_add_notice( __( 'Please enter cost!' ), 'error' );
+//     }
 
-    if ( ! $_POST['custom_shipping_date'] ) {
-        wc_add_notice( __( 'Please enter date!' ), 'error' );
-    }
+//     if ( ! $_POST['custom_shipping_date'] ) {
+//         wc_add_notice( __( 'Please enter date!' ), 'error' );
+//     }
 }
 
 /**
